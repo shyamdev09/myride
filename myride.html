@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Transport Booking Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body { font-family: Arial, sans-serif; }
+
+    #chatbot {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      width: 360px;
+      height: 500px;
+      background-color: #fff;
+      border: 1px solid #ccc;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+    }
+
+    #chat-header {
+      background-color: #2a7ae2;
+      color: white;
+      padding: 10px;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    #chat-area {
+      flex: 1;
+      padding: 10px;
+      overflow-y: auto;
+      border-top: 1px solid #ccc;
+      border-bottom: 1px solid #ccc;
+    }
+
+    #chat-input {
+      display: flex;
+      padding: 10px;
+    }
+
+    #chat-input input {
+      flex: 1;
+      padding: 5px;
+      font-size: 14px;
+    }
+
+    #chat-input button {
+      margin-left: 5px;
+      padding: 5px 10px;
+    }
+
+    .chat-msg {
+      margin: 5px 0;
+      display: flex;
+      align-items: flex-start;
+    }
+
+    .user {
+      justify-content: flex-end;
+      text-align: right;
+      color: blue;
+      flex-direction: row-reverse;
+    }
+
+    .bot {
+      color: green;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      margin: 0 8px;
+      border-radius: 50%;
+    }
+
+    .fare-table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 5px;
+    }
+
+    .fare-table th, .fare-table td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    .fare-table th {
+      background-color: #f2f2f2;
+    }
+
+    #chat-toggle {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background-color: #2a7ae2;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      z-index: 1001;
+    }
+
+    .message-bubble {
+      max-width: 80%;
+      background-color: #f1f1f1;
+      padding: 8px 12px;
+      border-radius: 10px;
+    }
+
+    .user .message-bubble {
+      background-color: #d0e6ff;
+    }
+
+    .bot .message-bubble {
+      background-color: #e4fbe0;
+    }
+  </style>
+</head>
+<body>
+
+<button id="chat-toggle">Chat</button>
+
+<div id="chatbot">
+  <div id="chat-header">
+    Transport Bot
+    <button onclick="toggleChat()" style="background:none;border:none;color:white;font-size:16px;">–</button>
+  </div>
+  <div id="chat-area"></div>
+  <div id="chat-input">
+    <input type="text" id="user-input" placeholder="Type here..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
+
+<script>
+  const botAvatar = "https://cdn-icons-png.flaticon.com/512/4712/4712035.png";
+  const userAvatar = "https://cdn-icons-png.flaticon.com/512/1946/1946429.png";
+
+  function toggleChat() {
+    const chat = document.getElementById('chatbot');
+    chat.style.display = (chat.style.display === 'none' || chat.style.display === '') ? 'flex' : 'none';
+  }
+
+  function sendMessage() {
+    const inputBox = document.getElementById('user-input');
+    const userMsg = inputBox.value.trim();
+    if (!userMsg) return;
+
+    displayMessage(userMsg, "user");
+    inputBox.value = "";
+
+    const estimateMatch = /estimate from (.+) to (.+)/i.exec(userMsg);
+    const bookMatch = /book (a )?(car|bike|auto)? ?from (.+) to (.+)/i.exec(userMsg);
+
+    if (estimateMatch) {
+      handleLiveEstimate(estimateMatch[1], estimateMatch[2]);
+    } else if (bookMatch) {
+      const rideType = bookMatch[2] || "ride";
+      const pickup = bookMatch[3];
+      const drop = bookMatch[4];
+      handleBooking(pickup, drop, rideType);
+    } else {
+      const response = getBotResponse(userMsg);
+      setTimeout(() => displayMessage(response, "bot"), 300);
+    }
+  }
+
+  function displayMessage(msg, sender) {
+    const chatArea = document.getElementById('chat-area');
+    const newMsg = document.createElement("div");
+    newMsg.className = `chat-msg ${sender}`;
+
+    const avatar = document.createElement("img");
+    avatar.className = "avatar";
+    avatar.src = sender === "user" ? userAvatar : botAvatar;
+
+    const bubble = document.createElement("div");
+    bubble.className = "message-bubble";
+    bubble.innerHTML = msg;
+
+    newMsg.appendChild(avatar);
+    newMsg.appendChild(bubble);
+
+    chatArea.appendChild(newMsg);
+    chatArea.scrollTop = chatArea.scrollHeight;
+  }
+
+  function getBotResponse(message) {
+    const msg = message.toLowerCase();
+    const responses = [
+      {
+        pattern: /hello|hi|hey/,
+        response: "Hi! You can ask me to book or estimate rides. Try:<br><code>book auto from SR Nagar to KPHB</code>"
+      },
+      {
+        pattern: /help/,
+        response: "Try queries like:<br>• book car from Ameerpet to Airport<br>• estimate from KPHB to Madhapur<br>• ola / uber / rapido"
+      },
+      {
+        pattern: /ola/,
+        response: 'Book Ola: <a href="https://www.olacabs.com/" target="_blank">olacabs.com</a>'
+      },
+      {
+        pattern: /uber/,
+        response: 'Book Uber: <a href="https://www.uber.com/in/en/" target="_blank">uber.com</a>'
+      },
+      {
+        pattern: /rapido/,
+        response: 'Book Rapido: <a href="https://www.rapido.bike/" target="_blank">rapido.bike</a>'
+      },
+      {
+        pattern: /redbus/,
+        response: 'Book RedBus: <a href="https://www.redbus.in/" target="_blank">redbus.in</a>'
+      },
+      {
+        pattern: /abhibus/,
+        response: 'Book AbhiBus: <a href="https://www.abhibus.com/" target="_blank">abhibus.com</a>'
+      },
+      {
+        pattern: /bye|goodbye/,
+        response: "Goodbye! Safe travels 🚗"
+      }
+    ];
+
+    for (let item of responses) {
+      if (item.pattern.test(msg)) return item.response;
+    }
+
+    return "Sorry, I didn’t understand. Try:<br><code>book bike from Begumpet to Banjara Hills</code>";
+  }
+
+  function handleLiveEstimate(pickup, drop) {
+    const html = `
+      <strong>Fare Estimate for: ${pickup} ➡️ ${drop}</strong>
+      <table class="fare-table">
+        <tr><th>Service</th><th>Vehicle</th><th>Fare</th><th>ETA</th></tr>
+        <tr><td>Uber</td><td>Uber Go</td><td>₹150-180</td><td>4 min</td></tr>
+        <tr><td>Ola</td><td>Mini</td><td>₹140-170</td><td>5 min</td></tr>
+        <tr><td>Rapido</td><td>Bike</td><td>₹70-90</td><td>3 min</td></tr>
+        <tr><td>RedBus</td><td>Volvo</td><td>₹300-350</td><td>10 min</td></tr>
+        <tr><td>AbhiBus</td><td>Express</td><td>₹280-320</td><td>12 min</td></tr>
+      </table>
+      <div style="margin-top:5px;">
+        (Mock data. Replace with real API integration later.)
+      </div>
+    `;
+    setTimeout(() => displayMessage(html, "bot"), 600);
+  }
+
+  function handleBooking(pickup, drop, type) {
+    const html = `
+      <strong>${type.charAt(0).toUpperCase() + type.slice(1)} Booking:</strong><br>
+      <em>${pickup} ➡️ ${drop}</em><br><br>
+      Book via:<br>
+      🚗 <a href="https://www.olacabs.com/" target="_blank">Ola</a><br>
+      🚕 <a href="https://www.uber.com/in/en/" target="_blank">Uber</a><br>
+      🛵 <a href="https://www.rapido.bike/" target="_blank">Rapido</a><br>
+      <br>
+      (Click your preferred provider to continue booking.)
+    `;
+    setTimeout(() => displayMessage(html, "bot"), 500);
+  }
+
+  document.getElementById("chat-toggle").addEventListener("click", toggleChat);
+  document.getElementById("user-input").addEventListener("keydown", function(event) {
+    if (event.key === "Enter") {
+      sendMessage();
+    }
+  });
+</script>
+
+</body>
+</html>
