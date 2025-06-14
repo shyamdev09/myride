@@ -49,32 +49,23 @@ open index.html
 
 3. Click the Chat button at the bottom-right to begin interacting with the bot.
 
-Chatbot Interface
+**Chatbot Interface**
+
 
 ![image alt](https://github.com/shyamdev09/myride/blob/503b2a93e71919d678601596e6fe0c0ad355458f/Screenshot%20Chatbot%20UI.png)
 
 
 
-
-
-
-
-Fare Estimate Simulation
+**Fare Estimate Simulation**
 
 ![image alt](https://github.com/shyamdev09/myride/blob/f7e68edd60b67d89a0a024cdd01643ee973b7628/estimate%20price.png)
 
 
 
 
+**Booking Suggestions**
 
-
-
-Booking Suggestions
-
-
-
-
-
+![image alt](https://github.com/shyamdev09/myride/blob/a5219af5141182a538b908cc8920af45263088fe/booking%20.png)
 
 
 
