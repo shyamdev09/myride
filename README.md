@@ -61,7 +61,7 @@ Chatbot Interface
 
 Fare Estimate Simulation
 
-
+![image alt](https://github.com/shyamdev09/myride/blob/f7e68edd60b67d89a0a024cdd01643ee973b7628/estimate%20price.png)
 
 
 
